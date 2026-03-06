@@ -30,10 +30,14 @@ type SidebarContext = {
   state: "expanded" | "collapsed"
   open: boolean
   setOpen: (open: boolean) => void
+  isCollapsed: boolean
+  setIsCollapsed: (collapsed: boolean | ((value: boolean) => boolean)) => void
   openMobile: boolean
   setOpenMobile: (open: boolean) => void
   isMobile: boolean
   toggleSidebar: () => void
+  hasSidebar: boolean
+  setHasSidebar: (value: boolean) => void
 }
 
 const SidebarContext = React.createContext<SidebarContext | null>(null)
@@ -116,17 +120,34 @@ const SidebarProvider = React.forwardRef<
     // This makes it easier to style the sidebar with Tailwind classes.
     const state = open ? "expanded" : "collapsed"
 
+    const setIsCollapsed = React.useCallback(
+      (value: boolean | ((value: boolean) => boolean)) => {
+        if (typeof value === "function") {
+          setOpen((prev) => !value(!prev))
+        } else {
+          setOpen(!value)
+        }
+      },
+      [setOpen]
+    )
+
+    const [hasSidebar, setHasSidebar] = React.useState(false)
+
     const contextValue = React.useMemo<SidebarContext>(
       () => ({
         state,
         open,
         setOpen,
+        isCollapsed: !open,
+        setIsCollapsed,
         isMobile,
         openMobile,
         setOpenMobile,
         toggleSidebar,
+        hasSidebar,
+        setHasSidebar,
       }),
-      [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+      [state, open, setOpen, setIsCollapsed, isMobile, openMobile, setOpenMobile, toggleSidebar, hasSidebar]
     )
 
     return (
@@ -175,7 +196,12 @@ const Sidebar = React.forwardRef<
     },
     ref
   ) => {
-    const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+    const { isMobile, state, openMobile, setOpenMobile, setHasSidebar } = useSidebar()
+
+    React.useEffect(() => {
+      setHasSidebar(true)
+      return () => setHasSidebar(false)
+    }, [setHasSidebar])
 
     if (collapsible === "none") {
       return (
