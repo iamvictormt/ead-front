@@ -6,6 +6,7 @@ export async function middleware(request: NextRequest) {
   const adminPaths = ['/admin'];
   const studentPaths = ['/dashboard', '/student'];
   const authPaths = ['/auth/login', '/auth/register', '/auth/forgot-password'];
+  const publicPaths = ['/aluno/carrinho'];
 
   const { pathname } = request.nextUrl;
 
@@ -13,6 +14,12 @@ export async function middleware(request: NextRequest) {
   const isAdminPath = adminPaths.some((path) => pathname.startsWith(path));
   const isStudentPath = studentPaths.some((path) => pathname.startsWith(path));
   const isAuthPath = authPaths.some((path) => pathname.startsWith(path));
+  const isPublicPath = publicPaths.some((path) => pathname.startsWith(path));
+
+  // If it's a public path, allow access
+  if (isPublicPath) {
+    return NextResponse.next();
+  }
 
   // Get session from cookies
   const authToken = request.cookies.get('auth-token')?.value;
