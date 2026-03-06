@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { CustomButton } from '@/components/ui/custom-button'
 import { Input } from '@/components/ui/input'
@@ -39,6 +39,7 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const [currentSlide, setCurrentSlide] = useState(0)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   // Force light theme for auth pages
   useEffect(() => {
@@ -92,6 +93,13 @@ export default function RegisterPage() {
       const data = await response.json()
 
       if (response.ok) {
+        // Verificar se há uma callbackUrl
+        const callbackUrl = searchParams.get('callbackUrl')
+        if (callbackUrl) {
+          router.push(callbackUrl)
+          return
+        }
+
         // Redirecionar baseado no role do usuário
         if (data.user?.role === 'admin') {
           router.push('/admin')
